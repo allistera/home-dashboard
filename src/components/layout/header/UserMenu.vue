@@ -290,7 +290,9 @@ const tabs = [
   { id: 'home-assistant', label: 'Home Assistant' },
 ]
 
-const menuItems = [{ icon: SettingsIcon, text: 'Account settings' }]
+const menuItems: Array<{ icon: typeof SettingsIcon; text: string; href?: string }> = [
+  { icon: SettingsIcon, text: 'Account settings' },
+]
 
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
@@ -358,12 +360,12 @@ const testHomeAssistantConnection = async () => {
   const timeoutId = window.setTimeout(() => controller.abort(), 8000)
 
   try {
-    const response = await fetch(`${url}/api/`, {
-      method: 'GET',
+    const response = await fetch('/api/home-assistant/test', {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ url, apiKey }),
       signal: controller.signal,
     })
 
