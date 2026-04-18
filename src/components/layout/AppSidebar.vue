@@ -240,6 +240,11 @@ const menuGroups = [
         subItems: [{ name: "Home", path: "/", pro: false }],
       },
       {
+        icon: TaskIcon,
+        name: "Todo",
+        path: "/tasks",
+      },
+      {
         icon: CalenderIcon,
         name: "Calendar",
         path: "/calendar",
@@ -248,11 +253,6 @@ const menuGroups = [
         icon: MailIcon,
         name: "Email",
         path: "/email",
-      },
-      {
-        icon: TaskIcon,
-        name: "Tasks",
-        path: "/tasks",
       },
       {
         icon: HomeIcon,
