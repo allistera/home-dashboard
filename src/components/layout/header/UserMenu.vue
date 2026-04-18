@@ -191,7 +191,7 @@
                 <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">
                   Home Assistant integration settings.
                 </p>
-                <form class="space-y-5" @submit.prevent="saveHomeAssistantSettings">
+                <form class="space-y-5" @submit.prevent="handleSaveHomeAssistantSettings">
                   <div>
                     <label
                       for="home-assistant-url"
@@ -324,6 +324,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
 
 const HOME_ASSISTANT_STORAGE_KEY = 'home-dashboard.home-assistant-settings'
+const HOME_ASSISTANT_SETTING_NAME = 'home-assistant'
 
 const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | ComponentPublicInstance | null>(null)
@@ -385,35 +386,102 @@ const queueSaveNotification = () => {
   }, 5000)
 }
 
-const loadHomeAssistantSettings = () => {
+const parseHomeAssistantSettings = (value: string) => {
+  const parsedSettings = JSON.parse(value)
+
+  return {
+    url: parsedSettings.url ?? '',
+    apiKey: parsedSettings.apiKey ?? '',
+  }
+}
+
+const loadHomeAssistantSettingsFromLocalStorage = () => {
+  const storedSettings = localStorage.getItem(HOME_ASSISTANT_STORAGE_KEY)
+
+  if (!storedSettings) {
+    return false
+  }
+
+  try {
+    homeAssistantSettings.value = parseHomeAssistantSettings(storedSettings)
+    return true
+  } catch (error) {
+    console.error('Unable to load Home Assistant settings from local storage.', error)
+    return false
+  }
+}
+
+const migrateHomeAssistantSettingsFromLocalStorage = async () => {
   const storedSettings = localStorage.getItem(HOME_ASSISTANT_STORAGE_KEY)
 
   if (!storedSettings) {
     return
   }
 
-  try {
-    const parsedSettings = JSON.parse(storedSettings)
+  if (!loadHomeAssistantSettingsFromLocalStorage()) {
+    return
+  }
 
-    homeAssistantSettings.value = {
-      url: parsedSettings.url ?? '',
-      apiKey: parsedSettings.apiKey ?? '',
-    }
+  try {
+    await saveHomeAssistantSettings({ showNotification: false })
   } catch (error) {
-    console.error('Unable to load Home Assistant settings from local storage.', error)
+    console.error('Unable to migrate Home Assistant settings to the database.', error)
   }
 }
 
-const saveHomeAssistantSettings = () => {
-  localStorage.setItem(
-    HOME_ASSISTANT_STORAGE_KEY,
-    JSON.stringify({
-      url: homeAssistantSettings.value.url,
-      apiKey: homeAssistantSettings.value.apiKey,
-    }),
-  )
+const loadHomeAssistantSettings = async () => {
+  try {
+    const response = await fetch(`/api/settings?name=${encodeURIComponent(HOME_ASSISTANT_SETTING_NAME)}`)
 
-  queueSaveNotification()
+    if (!response.ok) {
+      throw new Error(`Unexpected response status: ${response.status}`)
+    }
+
+    const payload = (await response.json()) as {
+      setting?: { name: string; value: string } | null
+    }
+
+    if (payload.setting?.value) {
+      homeAssistantSettings.value = parseHomeAssistantSettings(payload.setting.value)
+      return
+    }
+  } catch (error) {
+    console.error('Unable to load Home Assistant settings from the database.', error)
+  }
+
+  await migrateHomeAssistantSettingsFromLocalStorage()
+}
+
+const saveHomeAssistantSettings = async ({
+  showNotification = true,
+}: {
+  showNotification?: boolean
+} = {}) => {
+  const payload = JSON.stringify({
+    url: homeAssistantSettings.value.url,
+    apiKey: homeAssistantSettings.value.apiKey,
+  })
+
+  const response = await fetch('/api/settings', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: HOME_ASSISTANT_SETTING_NAME,
+      value: payload,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Unexpected response status: ${response.status}`)
+  }
+
+  localStorage.removeItem(HOME_ASSISTANT_STORAGE_KEY)
+
+  if (showNotification) {
+    queueSaveNotification()
+  }
 }
 
 const normalizeHomeAssistantUrl = (value: string) => value.trim().replace(/\/+$/, '')
@@ -465,7 +533,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 onMounted(() => {
-  loadHomeAssistantSettings()
+  void loadHomeAssistantSettings()
   document.addEventListener('click', handleClickOutside)
 })
 
@@ -473,4 +541,12 @@ onUnmounted(() => {
   hideSaveNotification()
   document.removeEventListener('click', handleClickOutside)
 })
+
+const handleSaveHomeAssistantSettings = async () => {
+  try {
+    await saveHomeAssistantSettings()
+  } catch (error) {
+    console.error('Unable to save Home Assistant settings to the database.', error)
+  }
+}
 </script>

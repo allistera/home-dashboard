@@ -80,3 +80,32 @@ This project is configured for Vercel in [vercel.json](/Users/allisterantosik/De
 The app uses Vue Router history mode, so Vercel also needs an SPA rewrite from all routes to `index.html`. That rewrite is included in `vercel.json`.
 
 To deploy from the Vercel dashboard, import the repository and keep the detected settings from `vercel.json`.
+
+## Database Setup
+
+The app now includes a Neon + Drizzle settings store backed by a `settings` table.
+
+Expected environment variables:
+
+- `DATABASE_URL`
+- `POSTGRES_URL`
+
+The Vercel Neon integration typically injects one of these automatically after the integration is installed and connected to the project.
+
+Useful commands:
+
+```sh
+bun run db:generate
+bun run db:migrate
+bun run db:push
+bun run db:studio
+```
+
+The first migration lives in [`drizzle/0000_talented_rawhide_kid.sql`](/Users/allisterantosik/Development/Projects/active/home-dashboard/drizzle/0000_talented_rawhide_kid.sql) and creates:
+
+```sql
+CREATE TABLE "settings" (
+  "name" text PRIMARY KEY NOT NULL,
+  "value" text NOT NULL
+);
+```
