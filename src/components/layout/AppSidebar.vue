@@ -222,6 +222,7 @@ import {
   ChatIcon,
   ChevronDownIcon,
   HorizontalDots,
+  HomeIcon,
 } from "../../icons";
 import { useSidebar } from "@/composables/useSidebar";
 
@@ -252,6 +253,11 @@ const menuGroups = [
         icon: TaskIcon,
         name: "Tasks",
         path: "/tasks",
+      },
+      {
+        icon: HomeIcon,
+        name: "Smart Home",
+        path: "/smart-home",
       },
       {
         icon: ChatIcon,

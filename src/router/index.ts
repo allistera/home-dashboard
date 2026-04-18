@@ -56,6 +56,12 @@ const router = createRouter({
       component: () => import('../views/AI/VideoGenerator.vue'),
       meta: { title: 'Video Generator' },
     },
+    {
+      path: '/smart-home',
+      name: 'Smart Home',
+      component: () => import('../views/SmartHome.vue'),
+      meta: { title: 'Smart Home Dashboard' },
+    },
   ],
 })
 

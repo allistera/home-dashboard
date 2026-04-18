@@ -1,5 +1,62 @@
 <template>
   <div class="relative" ref="dropdownRef">
+    <transition
+      enter-active-class="transform ease-out duration-300 transition"
+      enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+      enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+      leave-active-class="transition ease-in duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="showSaveNotification"
+        class="fixed top-6 right-6 z-999999 w-[calc(100vw-2rem)] max-w-sm rounded-2xl border border-success-200 bg-white p-4 shadow-theme-xl dark:border-success-500/30 dark:bg-gray-900"
+      >
+        <div class="flex items-start gap-3">
+          <div
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success-50 text-success-500 dark:bg-success-500/15"
+          >
+            <svg
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M16.704 5.29a1 1 0 010 1.415l-7.2 7.2a1 1 0 01-1.414 0l-3.2-3.2a1 1 0 011.414-1.415l2.493 2.493 6.493-6.493a1 1 0 011.414 0Z"
+              />
+            </svg>
+          </div>
+          <div class="min-w-0 flex-1 pt-0.5">
+            <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+              Settings Successfully Updated
+            </p>
+          </div>
+          <button
+            type="button"
+            class="text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-200"
+            @click="hideSaveNotification"
+          >
+            <span class="sr-only">Close notification</span>
+            <svg
+              class="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M5.293 5.293a1 1 0 011.414 0L10 8.586l3.293-3.293a1 1 0 111.414 1.414L11.414 10l3.293 3.293a1 1 0 01-1.414 1.414L10 11.414l-3.293 3.293a1 1 0 01-1.414-1.414L8.586 10 5.293 6.707a1 1 0 010-1.414Z"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </transition>
+
     <button
       class="flex items-center text-gray-700 dark:text-gray-400"
       @click.prevent="toggleDropdown"
@@ -168,12 +225,6 @@
                   </div>
 
                   <div class="flex items-center justify-between gap-3 pt-2">
-                    <p
-                      v-if="saveMessage"
-                      class="text-sm text-gray-500 dark:text-gray-400"
-                    >
-                      {{ saveMessage }}
-                    </p>
                     <div class="flex items-center gap-3">
                       <button
                         type="button"
@@ -278,12 +329,13 @@ const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | ComponentPublicInstance | null>(null)
 const isSettingsOpen = ref(false)
 const activeTab = ref('general')
-const saveMessage = ref('')
 const connectionTestState = ref('idle')
+const showSaveNotification = ref(false)
 const homeAssistantSettings = ref({
   url: '',
   apiKey: '',
 })
+let saveNotificationTimeoutId: number | null = null
 
 const tabs = [
   { id: 'general', label: 'General' },
@@ -310,6 +362,27 @@ const openSettings = () => {
 
 const closeSettings = () => {
   isSettingsOpen.value = false
+}
+
+const hideSaveNotification = () => {
+  showSaveNotification.value = false
+
+  if (saveNotificationTimeoutId !== null) {
+    window.clearTimeout(saveNotificationTimeoutId)
+    saveNotificationTimeoutId = null
+  }
+}
+
+const queueSaveNotification = () => {
+  if (saveNotificationTimeoutId !== null) {
+    window.clearTimeout(saveNotificationTimeoutId)
+  }
+
+  showSaveNotification.value = true
+  saveNotificationTimeoutId = window.setTimeout(() => {
+    showSaveNotification.value = false
+    saveNotificationTimeoutId = null
+  }, 5000)
 }
 
 const loadHomeAssistantSettings = () => {
@@ -340,7 +413,7 @@ const saveHomeAssistantSettings = () => {
     }),
   )
 
-  saveMessage.value = 'Saved locally on this device.'
+  queueSaveNotification()
 }
 
 const normalizeHomeAssistantUrl = (value: string) => value.trim().replace(/\/+$/, '')
@@ -397,6 +470,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  hideSaveNotification()
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
