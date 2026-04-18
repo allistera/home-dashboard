@@ -168,8 +168,11 @@
                   </div>
 
                   <div class="flex items-center justify-between gap-3 pt-2">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      {{ saveMessage || 'Saved in this browser using local storage.' }}
+                    <p
+                      v-if="saveMessage"
+                      class="text-sm text-gray-500 dark:text-gray-400"
+                    >
+                      {{ saveMessage }}
                     </p>
                     <button
                       type="submit"
