@@ -174,12 +174,86 @@
                     >
                       {{ saveMessage }}
                     </p>
-                    <button
-                      type="submit"
-                      class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
-                    >
-                      Save
-                    </button>
+                    <div class="flex items-center gap-3">
+                      <button
+                        type="button"
+                        :disabled="connectionTestState === 'loading'"
+                        @click="testHomeAssistantConnection"
+                        :class="[
+                          'inline-flex min-w-[172px] items-center justify-center gap-2 rounded-lg border px-5 py-3 text-sm font-medium shadow-theme-xs transition',
+                          connectionTestState === 'success'
+                            ? 'border-green-200 bg-white text-green-600 dark:border-green-500/30 dark:bg-white dark:text-green-600'
+                            : connectionTestState === 'error'
+                              ? 'border-red-200 bg-white text-red-600 dark:border-red-500/30 dark:bg-white dark:text-red-600'
+                              : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70 dark:border-gray-700 dark:bg-white dark:text-gray-800 dark:hover:bg-gray-100',
+                        ]"
+                      >
+                        <svg
+                          v-if="connectionTestState === 'loading'"
+                          class="h-4 w-4 animate-spin"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          />
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4Z"
+                          />
+                        </svg>
+                        <svg
+                          v-else-if="connectionTestState === 'success'"
+                          class="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            clip-rule="evenodd"
+                            d="M16.704 5.29a1 1 0 010 1.415l-7.2 7.2a1 1 0 01-1.414 0l-3.2-3.2a1 1 0 011.414-1.415l2.493 2.493 6.493-6.493a1 1 0 011.414 0Z"
+                          />
+                        </svg>
+                        <svg
+                          v-else-if="connectionTestState === 'error'"
+                          class="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            clip-rule="evenodd"
+                            d="M5.293 5.293a1 1 0 011.414 0L10 8.586l3.293-3.293a1 1 0 111.414 1.414L11.414 10l3.293 3.293a1 1 0 01-1.414 1.414L10 11.414l-3.293 3.293a1 1 0 01-1.414-1.414L8.586 10 5.293 6.707a1 1 0 010-1.414Z"
+                          />
+                        </svg>
+                        <span>
+                          {{
+                            connectionTestState === 'loading'
+                              ? 'Testing Connection'
+                              : connectionTestState === 'success'
+                                ? 'Successful Connection'
+                                : connectionTestState === 'error'
+                                  ? 'Unable to Connect'
+                                  : 'Test Connection'
+                          }}
+                        </span>
+                      </button>
+                      <button
+                        type="submit"
+                        class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
+                      >
+                        Save
+                      </button>
+                    </div>
                   </div>
                 </form>
               </div>
@@ -191,8 +265,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ChevronDownIcon, LogoutIcon, SettingsIcon } from '@/icons'
+import type { ComponentPublicInstance } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ref, onMounted, onUnmounted } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
@@ -200,10 +275,11 @@ import Modal from '@/components/ui/Modal.vue'
 const HOME_ASSISTANT_STORAGE_KEY = 'home-dashboard.home-assistant-settings'
 
 const dropdownOpen = ref(false)
-const dropdownRef = ref(null)
+const dropdownRef = ref<HTMLElement | ComponentPublicInstance | null>(null)
 const isSettingsOpen = ref(false)
 const activeTab = ref('general')
 const saveMessage = ref('')
+const connectionTestState = ref('idle')
 const homeAssistantSettings = ref({
   url: '',
   apiKey: '',
@@ -265,13 +341,50 @@ const saveHomeAssistantSettings = () => {
   saveMessage.value = 'Saved locally on this device.'
 }
 
+const normalizeHomeAssistantUrl = (value: string) => value.trim().replace(/\/+$/, '')
+
+const testHomeAssistantConnection = async () => {
+  const url = normalizeHomeAssistantUrl(homeAssistantSettings.value.url)
+  const apiKey = homeAssistantSettings.value.apiKey.trim()
+
+  if (!url || !apiKey) {
+    connectionTestState.value = 'error'
+    return
+  }
+
+  connectionTestState.value = 'loading'
+
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), 8000)
+
+  try {
+    const response = await fetch(`${url}/api/`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal,
+    })
+
+    connectionTestState.value = response.ok ? 'success' : 'error'
+  } catch (error) {
+    connectionTestState.value = 'error'
+    console.error('Unable to connect to Home Assistant.', error)
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
+}
+
 const signOut = () => {
   console.log('Signing out...')
   closeDropdown()
 }
 
-const handleClickOutside = (event) => {
-  if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as Node | null
+
+  if (dropdownRef.value instanceof HTMLElement && target && !dropdownRef.value.contains(target)) {
     closeDropdown()
   }
 }
