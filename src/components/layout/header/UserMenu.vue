@@ -192,7 +192,7 @@
 </template>
 
 <script setup>
-import { UserCircleIcon, ChevronDownIcon, LogoutIcon, SettingsIcon, InfoCircleIcon } from '@/icons'
+import { ChevronDownIcon, LogoutIcon, SettingsIcon } from '@/icons'
 import { RouterLink } from 'vue-router'
 import { ref, onMounted, onUnmounted } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
@@ -214,11 +214,7 @@ const tabs = [
   { id: 'home-assistant', label: 'Home Assistant' },
 ]
 
-const menuItems = [
-  { href: '/profile', icon: UserCircleIcon, text: 'Edit profile' },
-  { icon: SettingsIcon, text: 'Account settings' },
-  { href: '/profile', icon: InfoCircleIcon, text: 'Support' },
-]
+const menuItems = [{ icon: SettingsIcon, text: 'Account settings' }]
 
 const toggleDropdown = () => {
   dropdownOpen.value = !dropdownOpen.value
