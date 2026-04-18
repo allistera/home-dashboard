@@ -67,3 +67,16 @@ bun test:e2e --debug
 ```sh
 bun lint
 ```
+
+## Deploy To Vercel
+
+This project is configured for Vercel in [vercel.json](/Users/allisterantosik/Development/Projects/active/home-dashboard/vercel.json).
+
+- Framework preset: `Vite`
+- Install command: `bun install --frozen-lockfile`
+- Build command: `bun run build-only`
+- Output directory: `dist`
+
+The app uses Vue Router history mode, so Vercel also needs an SPA rewrite from all routes to `index.html`. That rewrite is included in `vercel.json`.
+
+To deploy from the Vercel dashboard, import the repository and keep the detected settings from `vercel.json`.
