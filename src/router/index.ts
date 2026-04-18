@@ -62,6 +62,6 @@ const router = createRouter({
 export default router
 
 router.beforeEach((to, from, next) => {
-  document.title = `${to.meta.title} | Tail Admin`
+  document.title = `TailAdmin - ${to.meta.title}`
   next()
 })
