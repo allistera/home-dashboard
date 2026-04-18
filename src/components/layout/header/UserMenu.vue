@@ -131,9 +131,54 @@
                 <h5 class="mb-4 text-lg font-medium text-gray-800 dark:text-white/90">
                   Home Assistant
                 </h5>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
+                <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">
                   Home Assistant integration settings.
                 </p>
+                <form class="space-y-5" @submit.prevent="saveHomeAssistantSettings">
+                  <div>
+                    <label
+                      for="home-assistant-url"
+                      class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
+                    >
+                      Home Assistant URL
+                    </label>
+                    <input
+                      id="home-assistant-url"
+                      v-model.trim="homeAssistantSettings.url"
+                      type="text"
+                      placeholder="https://homeassistant.local:8123"
+                      class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      for="home-assistant-api-key"
+                      class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
+                    >
+                      API Key
+                    </label>
+                    <input
+                      id="home-assistant-api-key"
+                      v-model.trim="homeAssistantSettings.apiKey"
+                      type="text"
+                      placeholder="Enter your Home Assistant API key"
+                      class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+                    />
+                  </div>
+
+                  <div class="flex items-center justify-between gap-3 pt-2">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ saveMessage || 'Saved in this browser using local storage.' }}
+                    </p>
+                    <button
+                      type="submit"
+                      class="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
@@ -149,10 +194,17 @@ import { RouterLink } from 'vue-router'
 import { ref, onMounted, onUnmounted } from 'vue'
 import Modal from '@/components/ui/Modal.vue'
 
+const HOME_ASSISTANT_STORAGE_KEY = 'home-dashboard.home-assistant-settings'
+
 const dropdownOpen = ref(false)
 const dropdownRef = ref(null)
 const isSettingsOpen = ref(false)
 const activeTab = ref('general')
+const saveMessage = ref('')
+const homeAssistantSettings = ref({
+  url: '',
+  apiKey: '',
+})
 
 const tabs = [
   { id: 'general', label: 'General' },
@@ -183,6 +235,37 @@ const closeSettings = () => {
   isSettingsOpen.value = false
 }
 
+const loadHomeAssistantSettings = () => {
+  const storedSettings = localStorage.getItem(HOME_ASSISTANT_STORAGE_KEY)
+
+  if (!storedSettings) {
+    return
+  }
+
+  try {
+    const parsedSettings = JSON.parse(storedSettings)
+
+    homeAssistantSettings.value = {
+      url: parsedSettings.url ?? '',
+      apiKey: parsedSettings.apiKey ?? '',
+    }
+  } catch (error) {
+    console.error('Unable to load Home Assistant settings from local storage.', error)
+  }
+}
+
+const saveHomeAssistantSettings = () => {
+  localStorage.setItem(
+    HOME_ASSISTANT_STORAGE_KEY,
+    JSON.stringify({
+      url: homeAssistantSettings.value.url,
+      apiKey: homeAssistantSettings.value.apiKey,
+    }),
+  )
+
+  saveMessage.value = 'Saved locally on this device.'
+}
+
 const signOut = () => {
   console.log('Signing out...')
   closeDropdown()
@@ -195,6 +278,7 @@ const handleClickOutside = (event) => {
 }
 
 onMounted(() => {
+  loadHomeAssistantSettings()
   document.addEventListener('click', handleClickOutside)
 })
 
