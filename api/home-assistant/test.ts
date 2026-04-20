@@ -1,4 +1,4 @@
-import type { ApiRequest, ApiResponse } from '../_lib/http'
+import type { ApiRequest, ApiResponse } from '../_lib/http.js'
 
 const normalizeUrl = (value: string) => value.trim().replace(/\/+$/, '')
 

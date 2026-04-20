@@ -1,9 +1,9 @@
 import { neon } from '@neondatabase/serverless'
 import { sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/neon-http'
-import { getDatabaseUrl } from './env'
+import { getDatabaseUrl } from './env.js'
 
-import * as schema from '../../src/server/db/schema'
+import * as schema from '../../src/server/db/schema.js'
 
 const createDb = () =>
   drizzle({

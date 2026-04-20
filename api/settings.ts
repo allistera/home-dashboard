@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
-import { ensureSettingsTable, getDb, schema } from './_lib/db'
-import { hasDatabaseUrl } from './_lib/env'
-import type { ApiRequest, ApiResponse } from './_lib/http'
+import { ensureSettingsTable, getDb, schema } from './_lib/db.js'
+import { hasDatabaseUrl } from './_lib/env.js'
+import type { ApiRequest, ApiResponse } from './_lib/http.js'
 
 const json = (response: ApiResponse, status: number, body: Record<string, unknown>) =>
   response.status(status).json(body)
