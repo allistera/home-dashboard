@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { db, schema } from './_lib/db'
+import { ensureSettingsTable, getDb, schema } from './_lib/db'
 
 const json = (response: VercelResponse, status: number, body: Record<string, unknown>) =>
   response.status(status).json(body)
@@ -12,6 +12,9 @@ export default async function handler(request: VercelRequest, response: VercelRe
     const name = typeof request.query.name === 'string' ? request.query.name.trim() : ''
 
     try {
+      const db = getDb()
+      await ensureSettingsTable()
+
       if (name) {
         const record = await db.query.settings.findFirst({
           where: (settings, { eq }) => eq(settings.name, name),
@@ -42,6 +45,9 @@ export default async function handler(request: VercelRequest, response: VercelRe
     }
 
     try {
+      const db = getDb()
+      await ensureSettingsTable()
+
       const [record] = await db
         .insert(schema.settings)
         .values({ name, value })
@@ -71,6 +77,9 @@ export default async function handler(request: VercelRequest, response: VercelRe
     }
 
     try {
+      const db = getDb()
+      await ensureSettingsTable()
+
       await db.delete(schema.settings).where(eq(schema.settings.name, name))
       return json(response, 200, { ok: true })
     } catch (error) {

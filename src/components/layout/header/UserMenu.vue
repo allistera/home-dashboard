@@ -31,7 +31,7 @@
           </div>
           <div class="min-w-0 flex-1 pt-0.5">
             <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-              Settings Successfully Updated
+              {{ saveNotificationMessage }}
             </p>
           </div>
           <button
@@ -332,6 +332,7 @@ const isSettingsOpen = ref(false)
 const activeTab = ref('general')
 const connectionTestState = ref('idle')
 const showSaveNotification = ref(false)
+const saveNotificationMessage = ref('Settings successfully updated')
 const homeAssistantSettings = ref({
   url: '',
   apiKey: '',
@@ -374,11 +375,12 @@ const hideSaveNotification = () => {
   }
 }
 
-const queueSaveNotification = () => {
+const queueSaveNotification = (message = 'Settings successfully updated') => {
   if (saveNotificationTimeoutId !== null) {
     window.clearTimeout(saveNotificationTimeoutId)
   }
 
+  saveNotificationMessage.value = message
   showSaveNotification.value = true
   saveNotificationTimeoutId = window.setTimeout(() => {
     showSaveNotification.value = false
@@ -393,6 +395,16 @@ const parseHomeAssistantSettings = (value: string) => {
     url: parsedSettings.url ?? '',
     apiKey: parsedSettings.apiKey ?? '',
   }
+}
+
+const serializeHomeAssistantSettings = () =>
+  JSON.stringify({
+    url: homeAssistantSettings.value.url,
+    apiKey: homeAssistantSettings.value.apiKey,
+  })
+
+const persistHomeAssistantSettingsLocally = () => {
+  localStorage.setItem(HOME_ASSISTANT_STORAGE_KEY, serializeHomeAssistantSettings())
 }
 
 const loadHomeAssistantSettingsFromLocalStorage = () => {
@@ -457,30 +469,36 @@ const saveHomeAssistantSettings = async ({
 }: {
   showNotification?: boolean
 } = {}) => {
-  const payload = JSON.stringify({
-    url: homeAssistantSettings.value.url,
-    apiKey: homeAssistantSettings.value.apiKey,
-  })
+  const payload = serializeHomeAssistantSettings()
 
-  const response = await fetch('/api/settings', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name: HOME_ASSISTANT_SETTING_NAME,
-      value: payload,
-    }),
-  })
+  try {
+    const response = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: HOME_ASSISTANT_SETTING_NAME,
+        value: payload,
+      }),
+    })
 
-  if (!response.ok) {
-    throw new Error(`Unexpected response status: ${response.status}`)
-  }
+    if (!response.ok) {
+      throw new Error(`Unexpected response status: ${response.status}`)
+    }
 
-  localStorage.removeItem(HOME_ASSISTANT_STORAGE_KEY)
+    localStorage.removeItem(HOME_ASSISTANT_STORAGE_KEY)
 
-  if (showNotification) {
-    queueSaveNotification()
+    if (showNotification) {
+      queueSaveNotification()
+    }
+  } catch (error) {
+    persistHomeAssistantSettingsLocally()
+    console.error('Unable to save Home Assistant settings to the database.', error)
+
+    if (showNotification) {
+      queueSaveNotification('Settings saved in this browser')
+    }
   }
 }
 
@@ -543,10 +561,6 @@ onUnmounted(() => {
 })
 
 const handleSaveHomeAssistantSettings = async () => {
-  try {
-    await saveHomeAssistantSettings()
-  } catch (error) {
-    console.error('Unable to save Home Assistant settings to the database.', error)
-  }
+  await saveHomeAssistantSettings()
 }
 </script>

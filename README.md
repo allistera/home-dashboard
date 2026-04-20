@@ -37,11 +37,9 @@ bun dev
 bun run build
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+### Run Unit Tests
 
-```sh
-bun test:unit
-```
+There is currently no dedicated unit test script configured in `package.json`.
 
 ### Run End-to-End Tests with [Playwright](https://playwright.dev)
 
@@ -53,13 +51,13 @@ npx playwright install
 bun run build
 
 # Runs the end-to-end tests
-bun test:e2e
+bun run test:e2e
 # Runs the tests only on Chromium
-bun test:e2e --project=chromium
+bun run test:e2e --project=chromium
 # Runs the tests of a specific file
-bun test:e2e tests/example.spec.ts
+bun run test:e2e tests/example.spec.ts
 # Runs the tests in debug mode
-bun test:e2e --debug
+bun run test:e2e --debug
 ```
 
 ### Lint with [ESLint](https://eslint.org/)
@@ -80,6 +78,19 @@ This project is configured for Vercel in [vercel.json](/Users/allisterantosik/De
 The app uses Vue Router history mode, so Vercel also needs an SPA rewrite from all routes to `index.html`. That rewrite is included in `vercel.json`.
 
 To deploy from the Vercel dashboard, import the repository and keep the detected settings from `vercel.json`.
+
+This repository also includes GitHub Actions workflows:
+
+- `.github/workflows/ci.yml` runs type-checking, linting, a production build, and Playwright when an `e2e/` suite exists.
+- `.github/workflows/deploy.yml` runs Drizzle migrations before production deploys on `main`, and can also be run manually for preview or production deployments.
+- `.github/workflows/database-migration.yml` lets you run `bun run db:migrate` manually against the preview or production database.
+
+Required GitHub secrets:
+
+- Repository secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`
+- Environment secrets: `DATABASE_URL` on the `production` environment, and on `preview` too if you plan to run preview migrations
+
+If these Actions are your deployment path, disable Vercel's Git-based auto deployments to avoid duplicate builds and deploys. Protecting `main` with the `CI` workflow is also recommended so production deploys only happen after the checks pass.
 
 ## Database Setup
 
