@@ -11,6 +11,10 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: 'UiModal',
+})
+
 interface ModalProps {
   fullScreenBackdrop?: boolean
 }

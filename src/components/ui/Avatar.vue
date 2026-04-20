@@ -13,6 +13,10 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: 'UiAvatar',
+})
+
 interface AvatarProps {
   src: string
   alt?: string
@@ -20,7 +24,7 @@ interface AvatarProps {
   status?: 'online' | 'offline' | 'busy' | 'none'
 }
 
-const props = withDefaults(defineProps<AvatarProps>(), {
+withDefaults(defineProps<AvatarProps>(), {
   alt: 'User Avatar',
   size: 'medium',
   status: 'none',

@@ -9,7 +9,7 @@
       </div>
 
       <!-- Modal -->
-      <Modal v-if="isOpen" @close="closeModal = false">
+      <Modal v-if="isOpen" @close="closeModal">
         <template #body>
           <div
             class="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11"
@@ -218,17 +218,21 @@
   </AdminLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
-
-const currentPageTitle = ref('Calendar')
 import { ref, reactive, onMounted } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import Modal from '@/components/profile/Modal.vue'
+
+defineOptions({
+  name: 'CalendarView',
+})
+
+const currentPageTitle = ref('Calendar')
 
 const calendarRef = ref(null)
 const isOpen = ref(false)

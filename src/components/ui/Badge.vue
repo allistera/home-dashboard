@@ -13,6 +13,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+defineOptions({
+  name: 'UiBadge',
+})
+
 type BadgeVariant = 'light' | 'solid'
 type BadgeSize = 'sm' | 'md'
 type BadgeColor = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'light' | 'dark'

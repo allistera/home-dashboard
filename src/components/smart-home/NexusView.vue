@@ -191,7 +191,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useHomeStore, ROOMS, roomName } from '@/stores/homeState'
+import { useHomeStore, ROOMS } from '@/stores/homeState'
 
 const props = defineProps<{ accent: string }>()
 const store = useHomeStore()

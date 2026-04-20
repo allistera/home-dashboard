@@ -8,5 +8,10 @@
 
 <script setup lang="ts">
 import { useSidebar } from '@/composables/useSidebar'
+
+defineOptions({
+  name: 'LayoutBackdrop',
+})
+
 const { toggleMobileSidebar, isMobileOpen } = useSidebar()
 </script>

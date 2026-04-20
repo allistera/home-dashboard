@@ -210,9 +210,9 @@
   </aside>
 </template>
 
-<script setup>
-import { ref, computed } from "vue";
-import { useRoute } from "vue-router";
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
 import {
   GridIcon,
@@ -223,92 +223,93 @@ import {
   ChevronDownIcon,
   HorizontalDots,
   HomeIcon,
-} from "../../icons";
-import { useSidebar } from "@/composables/useSidebar";
+} from '../../icons'
+import { useSidebar } from '@/composables/useSidebar'
 
-const route = useRoute();
+const route = useRoute()
 
-const { isExpanded, isMobileOpen, isHovered, openSubmenu } = useSidebar();
+const { isExpanded, isMobileOpen, isHovered, openSubmenu } = useSidebar()
 
 const menuGroups = [
   {
-    title: "Menu",
+    title: 'Menu',
     items: [
       {
         icon: GridIcon,
-        name: "Dashboard",
-        subItems: [{ name: "Home", path: "/", pro: false }],
+        name: 'Dashboard',
+        subItems: [{ name: 'Home', path: '/', pro: false }],
       },
       {
         icon: TaskIcon,
-        name: "Todo",
-        path: "/tasks",
+        name: 'Todo',
+        path: '/tasks',
       },
       {
         icon: CalenderIcon,
-        name: "Calendar",
-        path: "/calendar",
+        name: 'Calendar',
+        path: '/calendar',
       },
       {
         icon: MailIcon,
-        name: "Email",
-        path: "/email",
+        name: 'Email',
+        path: '/email',
       },
       {
         icon: HomeIcon,
-        name: "Smart Home",
-        path: "/smart-home",
+        name: 'Smart Home',
+        path: '/smart-home',
       },
       {
         icon: ChatIcon,
-        name: "AI Assistant",
+        name: 'AI Assistant',
         subItems: [
-          { name: "Text Generator", path: "/ai/text" },
-          { name: "Image Generator", path: "/ai/image" },
-          { name: "Code Generator", path: "/ai/code" },
-          { name: "Video Generator", path: "/ai/video" },
+          { name: 'Text Generator', path: '/ai/text' },
+          { name: 'Image Generator', path: '/ai/image' },
+          { name: 'Code Generator', path: '/ai/code' },
+          { name: 'Video Generator', path: '/ai/video' },
         ],
       },
     ],
   },
-];
+]
 
-const isActive = (path) => route.path === path;
+const isActive = (path: string) => route.path === path
 
-const toggleSubmenu = (groupIndex, itemIndex) => {
-  const key = `${groupIndex}-${itemIndex}`;
-  openSubmenu.value = openSubmenu.value === key ? null : key;
-};
+const toggleSubmenu = (groupIndex: number, itemIndex: number) => {
+  const key = `${groupIndex}-${itemIndex}`
+  openSubmenu.value = openSubmenu.value === key ? null : key
+}
 
 const isAnySubmenuRouteActive = computed(() => {
   return menuGroups.some((group) =>
     group.items.some(
       (item) =>
-        item.subItems && item.subItems.some((subItem) => isActive(subItem.path))
+        item.subItems && item.subItems.some((subItem) => isActive(subItem.path)),
     )
-  );
-});
+  )
+})
 
-const isSubmenuOpen = (groupIndex, itemIndex) => {
-  const key = `${groupIndex}-${itemIndex}`;
+const isSubmenuOpen = (groupIndex: number, itemIndex: number) => {
+  const key = `${groupIndex}-${itemIndex}`
   return (
     openSubmenu.value === key ||
     (isAnySubmenuRouteActive.value &&
       menuGroups[groupIndex].items[itemIndex].subItems?.some((subItem) =>
-        isActive(subItem.path)
+        isActive(subItem.path),
       ))
-  );
-};
+  )
+}
 
-const startTransition = (el) => {
-  el.style.height = "auto";
-  const height = el.scrollHeight;
-  el.style.height = "0px";
-  el.offsetHeight; // force reflow
-  el.style.height = height + "px";
-};
+const startTransition = (el: Element) => {
+  const element = el as HTMLElement
+  element.style.height = 'auto'
+  const height = element.scrollHeight
+  element.style.height = '0px'
+  void element.offsetHeight
+  element.style.height = `${height}px`
+}
 
-const endTransition = (el) => {
-  el.style.height = "";
-};
+const endTransition = (el: Element) => {
+  ;(el as HTMLElement).style.height = ''
+}
 </script>

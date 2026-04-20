@@ -46,10 +46,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import Dropzone from 'dropzone'
 import 'dropzone/dist/dropzone.css'
+
+defineOptions({
+  name: 'FormDropzone',
+})
 
 const props = defineProps({
   uploadUrl: {
@@ -58,9 +62,9 @@ const props = defineProps({
   },
 })
 
-const dropzoneForm = ref(null)
-const dropzoneId = `dropzone-${Math.random().toString(36).substr(2, 9)}`
-let dropzoneInstance = null
+const dropzoneForm = ref<HTMLFormElement | null>(null)
+const dropzoneId = `dropzone-${Math.random().toString(36).slice(2, 11)}`
+let dropzoneInstance: Dropzone | null = null
 
 onMounted(() => {
   Dropzone.autoDiscover = false
@@ -72,7 +76,7 @@ onMounted(() => {
     acceptedFiles: 'image/jpeg,image/png,image/gif,image/webp,image/svg+xml',
     headers: { 'My-Awesome-Header': 'header value' },
     dictDefaultMessage: '',
-    init: function () {
+    init: function (this: Dropzone) {
       this.on('addedfile', (file) => {
         console.log('A file has been added', file)
       })

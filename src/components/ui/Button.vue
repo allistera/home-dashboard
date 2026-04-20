@@ -21,13 +21,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import type { Component } from 'vue'
+
+defineOptions({
+  name: 'UiButton',
+})
 
 interface ButtonProps {
   size?: 'sm' | 'md'
   variant?: 'primary' | 'outline'
-  startIcon?: object
-  endIcon?: object
+  startIcon?: Component
+  endIcon?: Component
   onClick?: () => void
   className?: string
   disabled?: boolean

@@ -1,8 +1,12 @@
-<script>
-import { onMounted, onUnmounted } from 'vue'
+<script lang="ts">
+import type { DirectiveBinding } from 'vue'
+
+type ClickOutsideElement = HTMLElement & {
+  clickOutsideEvent?: (event: MouseEvent) => void
+}
 
 export default {
-  created(el, binding) {
+  mounted(el: ClickOutsideElement, binding: DirectiveBinding<(event: MouseEvent) => void>) {
     el.clickOutsideEvent = (event) => {
       if (!(el === event.target || el.contains(event.target))) {
         binding.value(event)
@@ -10,8 +14,10 @@ export default {
     }
     document.addEventListener('click', el.clickOutsideEvent)
   },
-  unmounted(el) {
-    document.removeEventListener('click', el.clickOutsideEvent)
+  unmounted(el: ClickOutsideElement) {
+    if (el.clickOutsideEvent) {
+      document.removeEventListener('click', el.clickOutsideEvent)
+    }
   },
 }
 </script>

@@ -154,7 +154,7 @@
   </admin-layout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, computed, nextTick } from 'vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 

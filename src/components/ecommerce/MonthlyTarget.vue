@@ -133,13 +133,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import DropdownMenu from '../common/DropdownMenu.vue'
+import VueApexCharts from 'vue3-apexcharts'
+
 const menuItems = [
   { label: 'View More', onClick: () => console.log('View More clicked') },
   { label: 'Delete', onClick: () => console.log('Delete clicked') },
 ]
-import VueApexCharts from 'vue3-apexcharts'
 
 const props = defineProps({
   value: {
