@@ -325,6 +325,7 @@ import Modal from '@/components/ui/Modal.vue'
 
 const HOME_ASSISTANT_STORAGE_KEY = 'home-dashboard.home-assistant-settings'
 const HOME_ASSISTANT_SETTING_NAME = 'home-assistant'
+const SETTINGS_DATABASE_UNAVAILABLE_CODE = 'SETTINGS_DATABASE_UNAVAILABLE'
 
 const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | ComponentPublicInstance | null>(null)
@@ -402,6 +403,22 @@ const serializeHomeAssistantSettings = () =>
     url: homeAssistantSettings.value.url,
     apiKey: homeAssistantSettings.value.apiKey,
   })
+
+const createSettingsApiError = async (response: Response) => {
+  const fallbackMessage = `Unexpected response status: ${response.status}`
+
+  try {
+    const payload = (await response.json()) as {
+      code?: string
+      error?: string
+    }
+    const error = new Error(payload.error ?? fallbackMessage) as Error & { code?: string }
+    error.code = payload.code
+    return error
+  } catch {
+    return new Error(fallbackMessage)
+  }
+}
 
 const persistHomeAssistantSettingsLocally = () => {
   localStorage.setItem(HOME_ASSISTANT_STORAGE_KEY, serializeHomeAssistantSettings())
@@ -484,7 +501,7 @@ const saveHomeAssistantSettings = async ({
     })
 
     if (!response.ok) {
-      throw new Error(`Unexpected response status: ${response.status}`)
+      throw await createSettingsApiError(response)
     }
 
     localStorage.removeItem(HOME_ASSISTANT_STORAGE_KEY)
@@ -494,7 +511,10 @@ const saveHomeAssistantSettings = async ({
     }
   } catch (error) {
     persistHomeAssistantSettingsLocally()
-    console.error('Unable to save Home Assistant settings to the database.', error)
+
+    if ((error as { code?: string }).code !== SETTINGS_DATABASE_UNAVAILABLE_CODE) {
+      console.error('Unable to save Home Assistant settings to the database.', error)
+    }
 
     if (showNotification) {
       queueSaveNotification('Settings saved in this browser')

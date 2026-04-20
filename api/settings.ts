@@ -1,15 +1,27 @@
 import { eq } from 'drizzle-orm'
-import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { ensureSettingsTable, getDb, schema } from './_lib/db'
+import { hasDatabaseUrl } from './_lib/env'
+import type { ApiRequest, ApiResponse } from './_lib/http'
 
-const json = (response: VercelResponse, status: number, body: Record<string, unknown>) =>
+const json = (response: ApiResponse, status: number, body: Record<string, unknown>) =>
   response.status(status).json(body)
 
-const badRequest = (response: VercelResponse, error: string) => json(response, 400, { ok: false, error })
+const badRequest = (response: ApiResponse, error: string) => json(response, 400, { ok: false, error })
 
-export default async function handler(request: VercelRequest, response: VercelResponse) {
+const storageUnavailable = (response: ApiResponse) =>
+  json(response, 503, {
+    ok: false,
+    code: 'SETTINGS_DATABASE_UNAVAILABLE',
+    error: 'Settings database is not configured',
+  })
+
+export default async function handler(request: ApiRequest, response: ApiResponse) {
   if (request.method === 'GET') {
     const name = typeof request.query.name === 'string' ? request.query.name.trim() : ''
+
+    if (!hasDatabaseUrl()) {
+      return json(response, 200, name ? { ok: true, setting: null } : { ok: true, settings: [] })
+    }
 
     try {
       const db = getDb()
@@ -44,6 +56,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
       return badRequest(response, 'Setting name is required')
     }
 
+    if (!hasDatabaseUrl()) {
+      return storageUnavailable(response)
+    }
+
     try {
       const db = getDb()
       await ensureSettingsTable()
@@ -74,6 +90,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
     if (!name) {
       return badRequest(response, 'Setting name is required')
+    }
+
+    if (!hasDatabaseUrl()) {
+      return storageUnavailable(response)
     }
 
     try {

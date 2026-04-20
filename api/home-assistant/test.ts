@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { ApiRequest, ApiResponse } from '../_lib/http'
 
 const normalizeUrl = (value: string) => value.trim().replace(/\/+$/, '')
 
@@ -11,7 +11,7 @@ const isHttpUrl = (value: string) => {
   }
 }
 
-export default async function handler(request: VercelRequest, response: VercelResponse) {
+export default async function handler(request: ApiRequest, response: ApiResponse) {
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST')
     return response.status(405).json({ ok: false, error: 'Method not allowed' })

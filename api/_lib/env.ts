@@ -4,8 +4,13 @@ const databaseUrlCandidates = [
   process.env.POSTGRES_PRISMA_URL,
 ]
 
+const resolveDatabaseUrl = () =>
+  databaseUrlCandidates.find((candidate): candidate is string => typeof candidate === 'string' && candidate.length > 0)
+
+export const hasDatabaseUrl = () => Boolean(resolveDatabaseUrl())
+
 export const getDatabaseUrl = () => {
-  const url = databaseUrlCandidates.find((candidate) => typeof candidate === 'string' && candidate)
+  const url = resolveDatabaseUrl()
 
   if (!url) {
     throw new Error(
