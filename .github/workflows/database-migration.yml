@@ -1,16 +1,9 @@
 name: Database Migration
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: Database environment to migrate
-        required: true
-        type: choice
-        options:
-          - production
-          - preview
-        default: production
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -18,9 +11,9 @@ permissions:
 jobs:
   migrate:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: production
     concurrency:
-      group: db-migrate-${{ inputs.environment }}
+      group: db-migrate-production
       cancel-in-progress: false
 
     steps:
@@ -46,4 +39,4 @@ jobs:
         run: bun run db:migrate
 
       - name: Add migration summary
-        run: echo "Applied Drizzle migrations to the ${{ inputs.environment }} database." >> "$GITHUB_STEP_SUMMARY"
+        run: echo "Applied Drizzle migrations to the production database." >> "$GITHUB_STEP_SUMMARY"

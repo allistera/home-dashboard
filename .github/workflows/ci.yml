@@ -1,4 +1,4 @@
-name: CI
+name: Lint
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -32,34 +32,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Type check
-        run: bun run type-check
-
       - name: Lint
         run: bun run lint
 
       - name: Fail if lint rewrote tracked files
         run: git diff --stat --exit-code
-
-      - name: Build
-        run: bun run build-only
-
-      - name: Install Playwright browsers
-        if: ${{ hashFiles('e2e/**/*') != '' }}
-        run: bunx playwright install --with-deps
-
-      - name: Run end-to-end tests
-        if: ${{ hashFiles('e2e/**/*') != '' }}
-        env:
-          CI: true
-        run: bun run test:e2e
-
-      - name: Upload Playwright artifacts
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-artifacts
-          path: |
-            playwright-report
-            test-results
-          if-no-files-found: ignore

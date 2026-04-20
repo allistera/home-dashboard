@@ -81,16 +81,14 @@ To deploy from the Vercel dashboard, import the repository and keep the detected
 
 This repository also includes GitHub Actions workflows:
 
-- `.github/workflows/ci.yml` runs type-checking, linting, a production build, and Playwright when an `e2e/` suite exists.
-- `.github/workflows/deploy.yml` runs Drizzle migrations before production deploys on `main`, and can also be run manually for preview or production deployments.
-- `.github/workflows/database-migration.yml` lets you run `bun run db:migrate` manually against the preview or production database.
+- `.github/workflows/ci.yml` runs the repository lint check on pushes and pull requests.
+- `.github/workflows/database-migration.yml` automatically runs `bun run db:migrate` against the production database on every push to `main`.
 
 Required GitHub secrets:
 
-- Repository secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`
-- Environment secrets: `DATABASE_URL` on the `production` environment, and on `preview` too if you plan to run preview migrations
+- GitHub environment secret: `DATABASE_URL` on the `production` environment
 
-If these Actions are your deployment path, disable Vercel's Git-based auto deployments to avoid duplicate builds and deploys. Protecting `main` with the `CI` workflow is also recommended so production deploys only happen after the checks pass.
+Vercel should stay connected to the repository so it can build and deploy directly from Git pushes. If you want lint to gate production releases, protect `main` and require the `Lint` workflow before merges land.
 
 ## Database Setup
 
